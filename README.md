@@ -1,159 +1,248 @@
+# APB Slave Design and Verification using SystemVerilog
+
 ## Project Overview
 
-This project implements an AMBA APB (Advanced Peripheral Bus) Slave in Verilog and verifies its functionality using a transaction-based SystemVerilog verification environment. The design supports both read and write transactions, incorporates slave error detection, and is verified using a custom testbench consisting of a Generator, Driver, Monitor, Scoreboard, and Environment.
+This project implements an **AMBA APB (Advanced Peripheral Bus) Slave** in Verilog and verifies its functionality using a **transaction-based SystemVerilog verification environment**. The design supports both **read** and **write** transactions, incorporates **slave error detection**, and is verified using a custom testbench consisting of a **Generator, Driver, Monitor, Scoreboard, and Environment**.
 
-The project was developed to strengthen understanding of APB protocol timing, finite state machine (FSM) design, transaction-based verification, mailbox communication, and functional checking without using UVM.
+The project was developed to strengthen my understanding of the APB protocol, finite state machine (FSM) design, transaction-based verification, mailbox communication, and functional checking using SystemVerilog without UVM.
+
+---
 
 ## Features
-APB Slave RTL Design
-Read and Write Transactions
-APB FSM Implementation
-Memory-based Data Storage
-PREADY Handshake Generation
-PSLVERR Generation
-Address Range Checking
-Invalid Address Detection
-Transaction-based Verification Environment
-Mailbox Communication
-Functional Scoreboard
-Waveform and Console Verification
-APB Slave Interface
-Signal	Direction	Description
-PCLK	Input	APB Clock
-PRESETn	Input	Active Low Reset
-PSEL	Input	Peripheral Select
-PENABLE	Input	Access Phase Enable
-PWRITE	Input	Read/Write Control
-PADDR	Input	Address Bus
-PWDATA	Input	Write Data
-PRDATA	Output	Read Data
-PREADY	Output	Transfer Completion
-PSLVERR	Output	Slave Error Indicator
-Design Architecture
 
-The APB Slave is implemented using a finite state machine consisting of three logical operations:
+- APB Slave RTL Design
+- APB Read and Write Transactions
+- Finite State Machine (FSM) Implementation
+- Internal Memory-Based Data Storage
+- PREADY Handshake Generation
+- PSLVERR Generation
+- Address Range Checking
+- Invalid Address Detection
+- Transaction-Based Verification Environment
+- Mailbox Communication
+- Functional Scoreboard
+- Simulation Waveform Analysis
 
-Idle
-Write
-Read
+---
 
-The slave stores incoming write data into an internal memory and returns the stored value during read transactions. Error detection logic is included for address and data validation.
+## APB Slave Interface
+
+| Signal | Direction | Description |
+|--------|-----------|-------------|
+| **PCLK** | Input | APB Clock |
+| **PRESETn** | Input | Active-Low Reset |
+| **PSEL** | Input | Peripheral Select |
+| **PENABLE** | Input | Access Phase Enable |
+| **PWRITE** | Input | Read/Write Control |
+| **PADDR** | Input | Address Bus |
+| **PWDATA** | Input | Write Data Bus |
+| **PRDATA** | Output | Read Data Bus |
+| **PREADY** | Output | Transfer Completion Signal |
+| **PSLVERR** | Output | Slave Error Indicator |
+
+---
+
+## Design Architecture
+
+The APB Slave is implemented using a finite state machine consisting of the following states:
+
+- **Idle**
+- **Write**
+- **Read**
+
+The slave stores incoming write data into an internal memory array and returns the stored value during read transactions. Basic error detection logic has also been implemented for address and data validation.
+
+---
 
 ## Verification Architecture
 
 The verification environment follows a transaction-based architecture using SystemVerilog.
 
-Generator
-      │
-      ▼
-Mailbox
-      │
-      ▼
-Driver
-      │
-      ▼
-APB Interface
-      │
-      ▼
-APB Slave DUT
-      │
-      ▼
-Monitor
-      │
-      ▼
-Mailbox
-      │
-      ▼
-Scoreboard
+```text
+          Generator
+              │
+              ▼
+          Mailbox
+              │
+              ▼
+           Driver
+              │
+              ▼
+      APB Interface
+              │
+              ▼
+        APB Slave DUT
+              │
+              ▼
+          Monitor
+              │
+              ▼
+          Mailbox
+              │
+              ▼
+        Scoreboard
+```
+
+---
 
 ## Verification Components
-Transaction
 
-Stores APB transaction fields such as address, write data, read data, control signals, and slave error information.
+### Transaction
 
-Generator
+Stores all APB transaction information including:
 
-Randomly generates APB read and write transactions and sends them to the driver using a mailbox.
+- Address
+- Write Data
+- Read Data
+- Control Signals
+- Slave Error Status
 
-Driver
+### Generator
 
-Drives APB protocol signals to the DUT according to generated transactions.
+- Randomly generates APB transactions.
+- Sends transactions to the driver through a mailbox.
 
-Monitor
+### Driver
 
-Samples DUT interface signals and reconstructs completed transactions.
+- Drives APB interface signals according to the generated transactions.
+- Implements APB read and write protocol.
 
-Scoreboard
+### Monitor
 
-Maintains a reference memory model and compares DUT read data against expected values while reporting mismatches.
+- Observes DUT interface signals.
+- Captures completed transactions.
+- Sends captured transactions to the scoreboard.
 
-## Environment
+### Scoreboard
 
-Connects all verification components and controls reset, execution, synchronization, and simulation flow.
+- Maintains a reference memory model.
+- Compares DUT read data with expected data.
+- Reports data match/mismatch.
 
-APB Transaction Flow
-Write Operation
-Assert PSEL
-Drive Address and Write Data
-Assert PENABLE
-Slave asserts PREADY
-Data is written into internal memory
-Read Operation
-Assert PSEL
-Drive Address
-Assert PENABLE
-Slave returns PRDATA
-Transfer completes when PREADY becomes High
-Error Detection
+### Environment
 
-The slave includes basic error detection for
+- Connects all verification components.
+- Performs reset.
+- Controls simulation execution.
+- Synchronizes Generator, Driver, Monitor, and Scoreboard.
 
-Invalid Address Range
-Invalid Address Value
-Invalid Data Value
+---
 
-Whenever an error condition is detected during a valid APB access, PSLVERR is asserted.
+## APB Transaction Flow
+
+### Write Transaction
+
+1. Assert **PSEL**
+2. Drive **PADDR** and **PWDATA**
+3. Assert **PENABLE**
+4. Slave asserts **PREADY**
+5. Data is written into internal memory
+
+### Read Transaction
+
+1. Assert **PSEL**
+2. Drive **PADDR**
+3. Assert **PENABLE**
+4. Slave returns **PRDATA**
+5. Transfer completes when **PREADY** becomes High
+
+---
+
+## Error Detection
+
+The APB Slave includes basic error detection for:
+
+- Invalid Address Range
+- Invalid Address Value
+- Invalid Data Value
+
+Whenever an error condition is detected during a valid APB access, **PSLVERR** is asserted.
+
+---
 
 ## Simulation Results
 
-Simulation confirms
+Simulation successfully demonstrates:
 
-Successful APB Read Operations
-Successful APB Write Operations
-Correct FSM State Transitions
-Proper PREADY Handshake
-Correct Memory Read/Write
-Correct Scoreboard Comparison
-Successful Transaction Completion
-Waveforms
+- ✅ APB Write Operations
+- ✅ APB Read Operations
+- ✅ Correct FSM State Transitions
+- ✅ Proper PREADY Handshake
+- ✅ Correct Memory Read/Write Operations
+- ✅ Successful Scoreboard Verification
+- ✅ Successful Transaction Completion
 
-The repository contains
+---
 
-APB FSM Diagram
-Console Output
-Simulation Waveform
+## Project Images
 
-demonstrating successful protocol execution and verification.
+The repository includes the following simulation results:
+
+- APB FSM Diagram
+- Console Output (Write Transactions)
+- Console Output (Read Transactions)
+- Simulation Waveform
+
+---
 
 ## Tools Used
-Verilog HDL
-SystemVerilog
-EDA Playground
-Synopsys VCS Simulator
-EPWave
+
+- **Verilog HDL**
+- **SystemVerilog**
+- **EDA Playground**
+- **Synopsys VCS Simulator**
+- **EPWave**
+
+---
 
 ## Learning Outcomes
 
-This project helped me gain practical experience in
+Through this project, I gained hands-on experience with:
 
-APB Protocol
-RTL Design
-Finite State Machine Design
-SystemVerilog Classes
-Transaction-Based Verification
-Mailboxes
-Virtual Interfaces
-Driver-Monitor Communication
-Scoreboard Development
-Functional Verification
-Debugging using Waveforms
+- AMBA APB Protocol
+- RTL Design
+- Finite State Machine (FSM) Design
+- SystemVerilog Classes
+- Transaction-Based Verification
+- Mailbox Communication
+- Virtual Interfaces
+- Driver-Monitor Architecture
+- Functional Scoreboard Development
+- Functional Verification
+- Waveform Debugging
+
+---
+
+## Repository Structure
+
+```text
+APB-Slave-SystemVerilog/
+│
+├── design.sv
+├── testbench.sv
+├── README.md
+│
+└── Images/
+    ├── APB_FSM.png
+    ├── Console_Output_1.png
+    ├── Console_Output_2.png
+    └── Simulation_Waveform.png
+```
+
+---
+
+## Future Improvements
+
+- Add Functional Coverage
+- Add SystemVerilog Assertions (SVA)
+- Verify Wait-State Transactions
+- Extend to UVM-Based Verification Environment
+- Improve Error Injection Testcases
+
+---
+
+## Author
+
+**Shreyas M**
+
+**Domain:** VLSI Design Verification | SystemVerilog | Digital Design
